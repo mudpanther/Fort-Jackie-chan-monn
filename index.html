@@ -1,0 +1,2850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jackie Chan Ancient China Battle Royale - Enhanced</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            font-size: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            color: white;
+            font-size: 12px;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000000, #1a1a2e);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 1000;
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff6b35);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, #ff4444, #ff6b35);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 68, 68, 0.6);
+        }
+
+        .fight-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(255, 107, 53, 0.4);
+        }
+
+        .fight-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.6);
+        }
+
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 18px;
+            z-index: 150;
+            border: 2px solid #ffd700;
+            display: none;
+            animation: fadeInOut 3s ease;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            10%, 90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            margin: 10px auto;
+            overflow: hidden;
+            border: 2px solid #555;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 8px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .health-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <h2>🥋 Loading Ancient China Battle Royale 🥋</h2>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+        <p id="loadingText">Initializing...</p>
+    </div>
+
+    <div id="crosshair"></div>
+    
+    <div id="gameContainer">
+        <div id="ui">
+            <h3>🥋 Jackie Chan: Ancient China Battle Royale</h3>
+            <div>🏯 Masters: <span id="count">0</span></div>
+            <div>📦 Collected: <span id="collected">0</span></div>
+            <div>❤️ Health: <span id="health">100</span>/100</div>
+            <div>⚔️ Weapon: <span id="current-weapon">Bare Hands</span></div>
+            <div>📦 Chests: <span id="chests-opened">0</span> | 🎉 Pinatas: <span id="pinatas-destroyed">0</span></div>
+            <div>📍 Status: <span id="status">Loading...</span></div>
+            <div id="interaction-hint" style="display: none; color: #ffff00; font-weight: bold; font-size: 16px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); animation: pulse 1.5s infinite;">
+                Press E, SPACE, or Double-Click to interact!
+            </div>
+            <div id="loot-notification" style="display: none; color: #00ff00; font-weight: bold; font-size: 16px;">
+                Found new weapon!
+            </div>
+        </div>
+
+        <div id="controls">
+            <strong>🎮 Controls:</strong><br>
+            WASD: Move<br>
+            Mouse: Drag to look around<br>
+            Arrow Keys: Look (backup)<br>
+            <strong>E or SPACE: Interact</strong><br>
+            <strong>Double-Click: Interact</strong><br>
+            R: Change weapon<br>
+            F: Find objects<br>
+            ESC: Exit<br>
+            Shift: Run
+        </div>
+
+        <div class="notification" id="gameNotification"></div>
+
+        <!-- Battle Selection Screen -->
+        <div id="battle-selection" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; color: white; text-align: center; padding-top: 150px;">
+            <h2 id="encounter-title" style="font-size: 32px; margin-bottom: 20px; text-shadow: 3px 3px 6px rgba(0,0,0,0.8);">Wild Jackie Chan Master Appears!</h2>
+            <p id="encounter-description" style="font-size: 18px; margin-bottom: 50px;">A legendary martial artist blocks your path!</p>
+            <div style="margin-top: 50px;">
+                <button class="action-btn" onclick="chooseAction('fight')" style="background: linear-gradient(45deg, #ff4444, #ff6b35);">🥊 FIGHT</button>
+                <button class="action-btn" onclick="chooseAction('collect')" style="background: linear-gradient(45deg, #44ff44, #66ff66);">🎒 COLLECT</button>
+                <button class="action-btn" onclick="chooseAction('run')" style="background: linear-gradient(45deg, #4444ff, #6666ff);">🏃 RUN AWAY</button>
+            </div>
+        </div>
+
+        <!-- Weapon Cutscene Screen -->
+        <div id="weapon-cutscene" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #000000, #1a1a2e, #16213e); z-index: 250; color: white; overflow: hidden;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 90%;">
+                
+                <!-- Epic Title -->
+                <h1 id="weapon-cutscene-title" style="font-size: 48px; margin-bottom: 20px; text-shadow: 3px 3px 6px rgba(255,215,0,0.8); color: #ffd700; animation: glow 2s ease-in-out infinite alternate;">
+                    ⚔️ LEGENDARY WEAPON ACQUIRED! ⚔️
+                </h1>
+                
+                <!-- Weapon Display Area -->
+                <div id="weapon-display-container" style="width: 400px; height: 300px; margin: 0 auto 30px auto; background: radial-gradient(circle, rgba(255,215,0,0.2), rgba(0,0,0,0.8)); border: 3px solid #ffd700; border-radius: 20px; position: relative; overflow: hidden;">
+                    <!-- 3D Weapon will be rendered here -->
+                </div>
+                
+                <!-- Weapon Info -->
+                <div style="background: rgba(0,0,0,0.8); padding: 25px; border-radius: 15px; border: 2px solid rgba(255,215,0,0.4); margin: 20px auto; max-width: 600px;">
+                    <h2 id="weapon-name" style="font-size: 36px; color: #ffd700; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">Dragon Sword</h2>
+                    <p id="weapon-description" style="font-size: 18px; color: #ffffff; margin-bottom: 20px; line-height: 1.6;">A legendary blade forged in the fires of ancient dragons, imbued with mystical power.</p>
+                    
+                    <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; color: #ff4444; font-weight: bold;" id="weapon-damage">35</div>
+                            <div style="font-size: 14px; color: #cccccc;">DAMAGE</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; color: #44ff44; font-weight: bold;" id="weapon-speed">Fast</div>
+                            <div style="font-size: 14px; color: #cccccc;">SPEED</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; color: #4444ff; font-weight: bold;" id="weapon-rarity">Legendary</div>
+                            <div style="font-size: 14px; color: #cccccc;">RARITY</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Continue Button -->
+                <button onclick="closeWeaponCutscene()" style="background: linear-gradient(45deg, #ffd700, #ffed4e); color: #000; border: none; padding: 15px 40px; border-radius: 25px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(255,215,0,0.4); transition: all 0.3s ease;">
+                    ✨ EQUIP WEAPON ✨
+                </button>
+            </div>
+            
+            <!-- Animated Background Particles -->
+            <div id="cutscene-particles" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1;">
+                <!-- Particles will be added here via JavaScript -->
+            </div>
+        </div>
+
+        <style>
+        @keyframes glow {
+            from { text-shadow: 3px 3px 6px rgba(255,215,0,0.8), 0 0 20px rgba(255,215,0,0.5); }
+            to { text-shadow: 3px 3px 6px rgba(255,215,0,1), 0 0 30px rgba(255,215,0,0.8); }
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        
+        .weapon-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: sparkle 2s infinite;
+        }
+        </style>
+        <div id="battle-cutscene" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #000000, #1a1a1a, #2d2d2d); z-index: 300; color: white;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 90%;">
+                <h2 id="cutscene-title" style="font-size: 36px; margin-bottom: 30px; text-shadow: 3px 3px 6px rgba(255,215,0,0.6);">🥋 EPIC KUNG FU BATTLE! 🥋</h2>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin: 40px 0;">
+                    <div style="flex: 1; text-align: center;">
+                        <h3 style="font-size: 24px; margin-bottom: 20px;">YOU</h3>
+                        <div style="font-size: 80px; margin: 20px; text-shadow: 3px 3px 6px rgba(0,0,0,0.8);">🤺</div>
+                        <div style="font-size: 18px; margin-bottom: 10px;">Health: <span id="player-health">100</span></div>
+                        <div class="health-bar">
+                            <div id="player-health-bar" class="health-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <div style="flex: 0.5; text-align: center; font-size: 64px; color: #ff4444; text-shadow: 3px 3px 6px rgba(255,68,68,0.8); animation: pulse 2s infinite;">
+                        ⚔️ VS ⚔️
+                    </div>
+
+                    <div style="flex: 1; text-align: center;">
+                        <h3 id="enemy-name" style="font-size: 24px; margin-bottom: 20px;">JACKIE CHAN</h3>
+                        <div style="font-size: 80px; margin: 20px; text-shadow: 3px 3px 6px rgba(0,0,0,0.8);">🥷</div>
+                        <div style="font-size: 18px; margin-bottom: 10px;">Health: <span id="enemy-health">100</span></div>
+                        <div class="health-bar">
+                            <div id="enemy-health-bar" class="health-fill" style="width: 100%; background: linear-gradient(90deg, #f44336, #ff5722);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="battle-log" style="height: 120px; overflow-y: auto; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 15px; margin: 20px 0; text-align: left; border: 2px solid rgba(255,215,0,0.3); font-size: 14px;">
+                    <div style="color: #ffd700;">⚡ The ancient kung fu battle begins! Choose your move wisely...</div>
+                </div>
+
+                <div id="fight-options" style="margin-top: 30px;">
+                    <button class="fight-btn" onclick="performAttack('punch')">👊 IRON FIST</button>
+                    <button class="fight-btn" onclick="performAttack('kick')">🦵 CRANE KICK</button>
+                    <button class="fight-btn" onclick="performAttack('fire_planche')">🔥 DRAGON FLAME</button>
+                    <button class="fight-btn" onclick="performAttack('nunchuk')">🥢 NUNCHUK FURY</button>
+                    <button class="fight-btn" onclick="performAttack('dodge')">🤸 SHADOW STEP</button>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button onclick="endBattle()" style="background: linear-gradient(45deg, #666, #888); color: white; border: none; padding: 12px 24px; border-radius: 15px; cursor: pointer; transition: all 0.3s ease;">⬅️ Return to China</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        console.log("=== ENHANCED JACKIE CHAN ANCIENT CHINA BATTLE ROYALE ===");
+        
+        // Enhanced Game State
+        class GameState {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.jackieModels = [];
+                this.collectedJackies = [];
+                this.chests = [];
+                this.pinatas = [];
+                this.playerWeapons = ['Bare Hands'];
+                this.currentWeapon = 'Bare Hands';
+                this.keys = {};
+                this.mouse = { x: 0, y: 0 };
+                this.isPointerLocked = false;
+                this.currentBattle = null;
+                this.battlePhase = 'none';
+                this.playerHealth = 100;
+                this.enemyHealth = 100;
+                this.isRunning = false;
+                this.lastInteractionTime = 0;
+                this.particles = [];
+            }
+        }
+
+        const game = new GameState();
+
+        // Enhanced Loading System
+        function updateLoading(progress, text) {
+            document.getElementById('loadingProgress').style.width = progress + '%';
+            document.getElementById('loadingText').textContent = text;
+        }
+
+        async function init() {
+            console.log("Initializing enhanced game...");
+            
+            try {
+                updateLoading(10, "Setting up 3D environment...");
+                await setupScene();
+                
+                updateLoading(30, "Creating ancient Chinese world...");
+                await createEnvironment();
+                
+                updateLoading(50, "Spawning Jackie Chan masters...");
+                await createJackieModels();
+                
+                updateLoading(70, "Placing treasure chests...");
+                await createTreasureChests();
+                
+                updateLoading(80, "Adding Fortnite pinatas...");
+                await createFortnitePinatas();
+                
+                updateLoading(90, "Setting up controls...");
+                setupControls();
+                
+                updateLoading(100, "Ready to fight!");
+                
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('status').textContent = '🌸 Exploring Ancient China';
+                    showNotification('🥋 Welcome! DRAG MOUSE to look around. Press E, SPACE, or DOUBLE-CLICK to interact!');
+                    animate();
+                }, 500);
+                
+            } catch (error) {
+                console.error("Error initializing game:", error);
+                updateLoading(0, "Error loading game. Please refresh.");
+            }
+        }
+
+        async function setupScene() {
+            // Enhanced scene setup
+            game.scene = new THREE.Scene();
+            game.scene.background = new THREE.Color(0x87CEEB); // Sky blue
+            game.scene.fog = new THREE.Fog(0x87CEEB, 100, 300); // Add atmospheric fog
+            
+            // Enhanced camera
+            game.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            game.camera.position.set(0, 15, 0);
+            
+            // Enhanced renderer
+            game.renderer = new THREE.WebGLRenderer({ antialias: true });
+            game.renderer.setSize(window.innerWidth, window.innerHeight);
+            game.renderer.setClearColor(0x87CEEB);
+            game.renderer.shadowMap.enabled = true;
+            game.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            game.renderer.gammaOutput = true;
+            game.renderer.gammaFactor = 2.2;
+            document.getElementById('gameContainer').appendChild(game.renderer.domElement);
+            
+            setupLighting();
+        }
+
+        function setupLighting() {
+            // Enhanced lighting system
+            const ambientLight = new THREE.AmbientLight(0xffeaa7, 0.4);
+            game.scene.add(ambientLight);
+            
+            // Sun (main directional light)
+            const sunLight = new THREE.DirectionalLight(0xffa500, 1.2);
+            sunLight.position.set(100, 150, 80);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 1;
+            sunLight.shadow.camera.far = 500;
+            sunLight.shadow.camera.left = -200;
+            sunLight.shadow.camera.right = 200;
+            sunLight.shadow.camera.top = 200;
+            sunLight.shadow.camera.bottom = -200;
+            game.scene.add(sunLight);
+            
+            // Secondary fill light
+            const fillLight = new THREE.DirectionalLight(0x74b9ff, 0.3);
+            fillLight.position.set(-50, 100, -50);
+            game.scene.add(fillLight);
+        }
+
+        async function createEnvironment() {
+            // Enhanced ground with texture
+            const groundGeometry = new THREE.PlaneGeometry(400, 400);
+            const groundMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x90EE90,
+                transparent: true,
+                opacity: 0.9
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            game.scene.add(ground);
+            
+            // Enhanced temples with more detail
+            for (let i = 0; i < 8; i++) {
+                const templeGroup = createDetailedTemple();
+                templeGroup.position.set(
+                    (Math.random() - 0.5) * 250,
+                    0,
+                    (Math.random() - 0.5) * 250
+                );
+                templeGroup.rotation.y = Math.random() * Math.PI * 2;
+                game.scene.add(templeGroup);
+            }
+            
+            // Enhanced trees
+            for (let i = 0; i < 25; i++) {
+                const treeGroup = createDetailedTree();
+                treeGroup.position.set(
+                    (Math.random() - 0.5) * 300,
+                    0,
+                    (Math.random() - 0.5) * 300
+                );
+                game.scene.add(treeGroup);
+            }
+            
+            // Add mountains in background
+            createMountains();
+            
+            // Add floating islands
+            createFloatingIslands();
+        }
+
+        function createDetailedTemple() {
+            const templeGroup = new THREE.Group();
+            
+            // Base platform
+            const base = new THREE.Mesh(
+                new THREE.BoxGeometry(18, 4, 18),
+                new THREE.MeshLambertMaterial({ color: 0x8b4513 })
+            );
+            base.position.y = 2;
+            base.castShadow = true;
+            base.receiveShadow = true;
+            templeGroup.add(base);
+            
+            // Main structure
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(14, 12, 14),
+                new THREE.MeshLambertMaterial({ color: 0xdc143c })
+            );
+            body.position.y = 10;
+            body.castShadow = true;
+            templeGroup.add(body);
+            
+            // Roof
+            const roof = new THREE.Mesh(
+                new THREE.ConeGeometry(12, 6, 8),
+                new THREE.MeshLambertMaterial({ color: 0x2f4f4f })
+            );
+            roof.position.y = 18;
+            roof.castShadow = true;
+            templeGroup.add(roof);
+            
+            // Pillars
+            for (let i = 0; i < 4; i++) {
+                const pillar = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.8, 1, 10, 8),
+                    new THREE.MeshLambertMaterial({ color: 0xdaa520 })
+                );
+                const angle = (i / 4) * Math.PI * 2;
+                pillar.position.set(
+                    Math.cos(angle) * 8,
+                    9,
+                    Math.sin(angle) * 8
+                );
+                pillar.castShadow = true;
+                templeGroup.add(pillar);
+            }
+            
+            return templeGroup;
+        }
+
+        function createDetailedTree() {
+            const treeGroup = new THREE.Group();
+            
+            // Trunk with texture variation
+            const trunkHeight = 10 + Math.random() * 8;
+            const trunk = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.6, 1.2, trunkHeight, 8),
+                new THREE.MeshLambertMaterial({ color: 0x8b4513 })
+            );
+            trunk.position.y = trunkHeight / 2;
+            trunk.castShadow = true;
+            treeGroup.add(trunk);
+            
+            // Cherry blossom foliage
+            const foliageSize = 5 + Math.random() * 4;
+            const foliage = new THREE.Mesh(
+                new THREE.SphereGeometry(foliageSize, 12, 12),
+                new THREE.MeshLambertMaterial({ 
+                    color: 0xffb6c1,
+                    transparent: true,
+                    opacity: 0.8
+                })
+            );
+            foliage.position.y = trunkHeight + foliageSize - 2;
+            foliage.castShadow = true;
+            treeGroup.add(foliage);
+            
+            // Falling petals effect
+            if (Math.random() > 0.7) {
+                createFallingPetals(treeGroup.position);
+            }
+            
+            return treeGroup;
+        }
+
+        function createMountains() {
+            for (let i = 0; i < 6; i++) {
+                const mountain = new THREE.Mesh(
+                    new THREE.ConeGeometry(30 + Math.random() * 20, 40 + Math.random() * 30, 8),
+                    new THREE.MeshLambertMaterial({ 
+                        color: 0x696969,
+                        transparent: true,
+                        opacity: 0.6
+                    })
+                );
+                
+                const angle = (i / 6) * Math.PI * 2;
+                mountain.position.set(
+                    Math.cos(angle) * 200,
+                    mountain.geometry.parameters.height / 2,
+                    Math.sin(angle) * 200
+                );
+                
+                game.scene.add(mountain);
+            }
+        }
+
+        function createFloatingIslands() {
+            for (let i = 0; i < 4; i++) {
+                const islandGroup = new THREE.Group();
+                
+                const island = new THREE.Mesh(
+                    new THREE.SphereGeometry(8, 12, 8),
+                    new THREE.MeshLambertMaterial({ color: 0x8fbc8f })
+                );
+                island.scale.y = 0.6;
+                islandGroup.add(island);
+                
+                // Small temple on island
+                const miniTemple = new THREE.Mesh(
+                    new THREE.BoxGeometry(3, 4, 3),
+                    new THREE.MeshLambertMaterial({ color: 0xdaa520 })
+                );
+                miniTemple.position.y = 4;
+                islandGroup.add(miniTemple);
+                
+                islandGroup.position.set(
+                    (Math.random() - 0.5) * 150,
+                    25 + Math.random() * 15,
+                    (Math.random() - 0.5) * 150
+                );
+                
+                game.scene.add(islandGroup);
+            }
+        }
+
+        async function createJackieModels() {
+            const jackieTypes = [
+                { name: 'Shaolin Temple Master', outfit: 0xff8c00, pants: 0x8b4513 },
+                { name: 'Kung Fu Grandmaster', outfit: 0x000080, pants: 0x000000 },
+                { name: 'Dragon Style Fighter', outfit: 0xdc143c, pants: 0x2f4f4f },
+                { name: 'Drunken Boxing Master', outfit: 0x2e8b57, pants: 0x654321 },
+                { name: 'Wudang Sword Saint', outfit: 0x4169e1, pants: 0x191970 },
+                { name: 'Mantis Kung Fu Expert', outfit: 0x32cd32, pants: 0x228b22 },
+                { name: 'Tiger Style Warrior', outfit: 0xff4500, pants: 0x8b0000 },
+                { name: 'Crane Style Sage', outfit: 0xfffacd, pants: 0xdaa520 }
+            ];
+            
+            for (let i = 0; i < 20; i++) {
+                const jackieType = jackieTypes[i % jackieTypes.length];
+                const jackieGroup = createEnhancedJackie(jackieType);
+                
+                // Better positioning to avoid overlaps
+                let position;
+                let attempts = 0;
+                do {
+                    position = {
+                        x: (Math.random() - 0.5) * 200,
+                        y: 8,
+                        z: (Math.random() - 0.5) * 200
+                    };
+                    attempts++;
+                } while (attempts < 10 && isPositionTooClose(position));
+                
+                jackieGroup.position.set(position.x, position.y, position.z);
+                
+                game.scene.add(jackieGroup);
+                game.jackieModels.push({
+                    group: jackieGroup,
+                    type: jackieType.name,
+                    animOffset: Math.random() * Math.PI * 2,
+                    collected: false,
+                    floatDirection: Math.random() > 0.5 ? 1 : -1
+                });
+            }
+            
+            document.getElementById('count').textContent = game.jackieModels.length;
+        }
+
+        function createEnhancedJackie(jackieType) {
+            const jackieGroup = new THREE.Group();
+            
+            // Head with better proportions
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.5, 16, 16),
+                new THREE.MeshLambertMaterial({ color: 0xffdbac })
+            );
+            head.position.y = 4.5;
+            head.castShadow = true;
+            jackieGroup.add(head);
+            
+            // Hair
+            const hair = new THREE.Mesh(
+                new THREE.SphereGeometry(0.52, 16, 16),
+                new THREE.MeshLambertMaterial({ color: 0x1a1a1a })
+            );
+            hair.position.y = 4.6;
+            hair.scale.y = 0.8;
+            hair.castShadow = true;
+            jackieGroup.add(hair);
+            
+            // Body
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.6, 0.7, 2.5, 12),
+                new THREE.MeshLambertMaterial({ color: jackieType.outfit })
+            );
+            body.position.y = 2.8;
+            body.castShadow = true;
+            jackieGroup.add(body);
+            
+            // Arms
+            const leftArm = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.18, 1.5, 10),
+                new THREE.MeshLambertMaterial({ color: 0xffdbac })
+            );
+            leftArm.position.set(-0.9, 3.2, 0);
+            leftArm.rotation.z = -0.3;
+            leftArm.castShadow = true;
+            jackieGroup.add(leftArm);
+            
+            const rightArm = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.18, 1.5, 10),
+                new THREE.MeshLambertMaterial({ color: 0xffdbac })
+            );
+            rightArm.position.set(0.9, 3.2, 0);
+            rightArm.rotation.z = 0.3;
+            rightArm.castShadow = true;
+            jackieGroup.add(rightArm);
+            
+            // Legs
+            const leftLeg = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.22, 0.2, 1.6, 10),
+                new THREE.MeshLambertMaterial({ color: jackieType.pants })
+            );
+            leftLeg.position.set(-0.3, 0.9, 0);
+            leftLeg.castShadow = true;
+            jackieGroup.add(leftLeg);
+            
+            const rightLeg = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.22, 0.2, 1.6, 10),
+                new THREE.MeshLambertMaterial({ color: jackieType.pants })
+            );
+            rightLeg.position.set(0.3, 0.9, 0);
+            rightLeg.castShadow = true;
+            jackieGroup.add(rightLeg);
+            
+            // Enhanced aura effect
+            const aura = new THREE.Mesh(
+                new THREE.SphereGeometry(3, 16, 16),
+                new THREE.MeshBasicMaterial({
+                    color: jackieType.outfit,
+                    transparent: true,
+                    opacity: 0.1
+                })
+            );
+            aura.position.y = 2.5;
+            jackieGroup.add(aura);
+            
+            jackieGroup.scale.setScalar(1.8);
+            
+            return jackieGroup;
+        }
+
+        function isPositionTooClose(position) {
+            const minDistance = 15;
+            for (let jackie of game.jackieModels) {
+                const distance = Math.sqrt(
+                    Math.pow(position.x - jackie.group.position.x, 2) +
+                    Math.pow(position.z - jackie.group.position.z, 2)
+                );
+                if (distance < minDistance) return true;
+            }
+            return false;
+        }
+
+        async function createTreasureChests() {
+            console.log("Creating enhanced treasure chests...");
+            
+            for (let i = 0; i < 25; i++) {
+                const chestGroup = createEnhancedChest();
+                
+                // Better positioning - avoid overlaps
+                let attempts = 0;
+                let position;
+                
+                do {
+                    position = {
+                        x: (Math.random() - 0.5) * 180, // Closer to center
+                        y: 0,
+                        z: (Math.random() - 0.5) * 180
+                    };
+                    attempts++;
+                } while (attempts < 5); // Don't try too hard
+                
+                chestGroup.position.set(position.x, position.y, position.z);
+                
+                // Find the glow object (it's the sphere with transparent material)
+                const glowObject = chestGroup.children.find(child => 
+                    child.geometry && child.geometry.type === 'SphereGeometry' && 
+                    child.material.transparent && child.material.opacity < 0.5
+                );
+                
+                // Find the lid (it's the second box geometry after the base)
+                const lidObject = chestGroup.children.find(child => 
+                    child.geometry && child.geometry.type === 'BoxGeometry' && 
+                    child.position.y > 3
+                );
+                
+                const chest = {
+                    group: chestGroup,
+                    opened: false,
+                    glow: glowObject,
+                    lid: lidObject,
+                    id: 'chest_' + i
+                };
+                
+                game.chests.push(chest);
+                game.scene.add(chestGroup);
+                
+                console.log(`Created chest ${i} at position (${position.x.toFixed(1)}, ${position.y.toFixed(1)}, ${position.z.toFixed(1)})`);
+            }
+            
+            console.log(`Successfully created ${game.chests.length} treasure chests!`);
+        }
+
+        function createEnhancedChest() {
+            const chestGroup = new THREE.Group();
+            
+            // Base
+            const chestBase = new THREE.Mesh(
+                new THREE.BoxGeometry(4, 3, 3), // Made bigger
+                new THREE.MeshLambertMaterial({ color: 0x8b4513 })
+            );
+            chestBase.position.y = 1.5;
+            chestBase.castShadow = true;
+            chestBase.receiveShadow = true;
+            chestGroup.add(chestBase);
+            
+            // Lid
+            const chestLid = new THREE.Mesh(
+                new THREE.BoxGeometry(4.2, 0.6, 3.2),
+                new THREE.MeshLambertMaterial({ color: 0x654321 })
+            );
+            chestLid.position.y = 3.3;
+            chestLid.castShadow = true;
+            chestGroup.add(chestLid);
+            
+            // Enhanced gold decorations - more visible
+            for (let i = 0; i < 3; i++) {
+                const goldBand = new THREE.Mesh(
+                    new THREE.BoxGeometry(4.4, 0.2, 3.4),
+                    new THREE.MeshLambertMaterial({ color: 0xffd700 })
+                );
+                goldBand.position.y = 0.6 + i * 1;
+                chestGroup.add(goldBand);
+            }
+            
+            // Larger, more visible lock
+            const lock = new THREE.Mesh(
+                new THREE.BoxGeometry(0.8, 0.8, 0.6),
+                new THREE.MeshLambertMaterial({ color: 0xc0c0c0 })
+            );
+            lock.position.set(0, 2.2, 1.8);
+            chestGroup.add(lock);
+            
+            // MUCH MORE VISIBLE magical glow
+            const glowGeometry = new THREE.SphereGeometry(8, 16, 16); // Bigger glow
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.25 // More visible
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.position.y = 2;
+            chestGroup.add(glow);
+            
+            // Add floating sparkles around the chest
+            for (let i = 0; i < 5; i++) {
+                const sparkle = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.1, 8, 8),
+                    new THREE.MeshBasicMaterial({ 
+                        color: 0xffd700,
+                        transparent: true,
+                        opacity: 0.8
+                    })
+                );
+                
+                const angle = (i / 5) * Math.PI * 2;
+                sparkle.position.set(
+                    Math.cos(angle) * 3,
+                    2 + Math.sin(i) * 1,
+                    Math.sin(angle) * 3
+                );
+                chestGroup.add(sparkle);
+            }
+            
+            return chestGroup;
+        }
+
+        async function createFortnitePinatas() {
+            const pinataColors = [0xff69b4, 0x00ff00, 0xff4500, 0x9400d3, 0xffff00, 0x00bfff, 0xff1493, 0x32cd32];
+            
+            for (let i = 0; i < 18; i++) {
+                const pinataGroup = createEnhancedPinata(pinataColors);
+                
+                pinataGroup.position.set(
+                    (Math.random() - 0.5) * 250,
+                    0,
+                    (Math.random() - 0.5) * 250
+                );
+                
+                const pinata = {
+                    group: pinataGroup,
+                    health: 75, // Increased health
+                    maxHealth: 75,
+                    destroyed: false,
+                    id: 'pinata_' + i,
+                    animOffset: Math.random() * Math.PI * 2,
+                    color: pinataColors[Math.floor(Math.random() * pinataColors.length)]
+                };
+                
+                game.pinatas.push(pinata);
+                game.scene.add(pinataGroup);
+            }
+        }
+
+        function createEnhancedPinata(colors) {
+            const pinataGroup = new THREE.Group();
+            
+            // Main body - llama/goat body shape
+            const mainColor = colors[Math.floor(Math.random() * colors.length)];
+            const secondaryColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Body (main torso)
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(3, 2, 1.5),
+                new THREE.MeshLambertMaterial({ color: mainColor })
+            );
+            body.position.set(0, 1.5, 0);
+            body.castShadow = true;
+            pinataGroup.add(body);
+            
+            // Neck (extending upward)
+            const neck = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.6, 0.8, 2.5, 8),
+                new THREE.MeshLambertMaterial({ color: mainColor })
+            );
+            neck.position.set(0, 3.5, 1);
+            neck.rotation.x = -0.3; // Slight angle forward
+            neck.castShadow = true;
+            pinataGroup.add(neck);
+            
+            // Head (llama head)
+            const head = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 1, 1.8),
+                new THREE.MeshLambertMaterial({ color: secondaryColor })
+            );
+            head.position.set(0, 4.8, 1.8);
+            head.castShadow = true;
+            pinataGroup.add(head);
+            
+            // Snout
+            const snout = new THREE.Mesh(
+                new THREE.BoxGeometry(0.6, 0.4, 0.8),
+                new THREE.MeshLambertMaterial({ color: 0xffb6c1 })
+            );
+            snout.position.set(0, 4.6, 2.5);
+            pinataGroup.add(snout);
+            
+            // Ears (llama ears)
+            const leftEar = new THREE.Mesh(
+                new THREE.ConeGeometry(0.3, 0.8, 6),
+                new THREE.MeshLambertMaterial({ color: secondaryColor })
+            );
+            leftEar.position.set(-0.6, 5.4, 1.8);
+            leftEar.rotation.z = -0.5;
+            pinataGroup.add(leftEar);
+            
+            const rightEar = new THREE.Mesh(
+                new THREE.ConeGeometry(0.3, 0.8, 6),
+                new THREE.MeshLambertMaterial({ color: secondaryColor })
+            );
+            rightEar.position.set(0.6, 5.4, 1.8);
+            rightEar.rotation.z = 0.5;
+            pinataGroup.add(rightEar);
+            
+            // Eyes
+            const leftEye = new THREE.Mesh(
+                new THREE.SphereGeometry(0.15, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0x000000 })
+            );
+            leftEye.position.set(-0.3, 5, 2.4);
+            pinataGroup.add(leftEye);
+            
+            const rightEye = new THREE.Mesh(
+                new THREE.SphereGeometry(0.15, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0x000000 })
+            );
+            rightEye.position.set(0.3, 5, 2.4);
+            pinataGroup.add(rightEye);
+            
+            // Four legs (llama legs)
+            const legPositions = [
+                [-1, 0.4, -0.5], // Back left
+                [1, 0.4, -0.5],  // Back right
+                [-1, 0.4, 0.5],  // Front left
+                [1, 0.4, 0.5]    // Front right
+            ];
+            
+            legPositions.forEach((pos, index) => {
+                const leg = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.25, 0.3, 1.2, 8),
+                    new THREE.MeshLambertMaterial({ color: mainColor })
+                );
+                leg.position.set(pos[0], pos[1], pos[2]);
+                leg.castShadow = true;
+                pinataGroup.add(leg);
+                
+                // Hooves
+                const hoof = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.35, 0.3, 0.2, 8),
+                    new THREE.MeshLambertMaterial({ color: 0x654321 })
+                );
+                hoof.position.set(pos[0], 0, pos[2]);
+                pinataGroup.add(hoof);
+            });
+            
+            // Tail
+            const tail = new THREE.Mesh(
+                new THREE.ConeGeometry(0.2, 0.8, 6),
+                new THREE.MeshLambertMaterial({ color: secondaryColor })
+            );
+            tail.position.set(0, 2, -1.2);
+            tail.rotation.x = Math.PI;
+            pinataGroup.add(tail);
+            
+            // Decorative colorful strips (Fortnite style)
+            for (let j = 0; j < 12; j++) {
+                const strip = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.4, 1.5),
+                    new THREE.MeshLambertMaterial({ 
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        side: THREE.DoubleSide
+                    })
+                );
+                
+                // Position strips around the body
+                const angle = (j / 12) * Math.PI * 2;
+                const radius = 1.8;
+                strip.position.set(
+                    Math.cos(angle) * radius,
+                    1.5 + Math.sin(j * 0.5) * 0.3,
+                    Math.sin(angle) * radius
+                );
+                strip.rotation.y = angle + Math.PI/2;
+                strip.castShadow = true;
+                pinataGroup.add(strip);
+            }
+            
+            // Extra festive ribbons on the neck
+            for (let k = 0; k < 6; k++) {
+                const ribbon = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.3, 1),
+                    new THREE.MeshLambertMaterial({ 
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        side: THREE.DoubleSide
+                    })
+                );
+                
+                const angle = (k / 6) * Math.PI * 2;
+                ribbon.position.set(
+                    Math.cos(angle) * 1,
+                    3.5,
+                    1 + Math.sin(angle) * 1
+                );
+                ribbon.rotation.y = angle;
+                pinataGroup.add(ribbon);
+            }
+            
+            // Saddle/blanket on top
+            const saddle = new THREE.Mesh(
+                new THREE.BoxGeometry(2.5, 0.2, 1.8),
+                new THREE.MeshLambertMaterial({ color: colors[Math.floor(Math.random() * colors.length)] })
+            );
+            saddle.position.set(0, 2.6, 0);
+            pinataGroup.add(saddle);
+            
+            // Add hanging string from above
+            const string = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.05, 0.05, 3, 6),
+                new THREE.MeshLambertMaterial({ color: 0x8b4513 })
+            );
+            string.position.y = 7.5;
+            pinataGroup.add(string);
+            
+            // Festive pom-poms
+            for (let p = 0; p < 4; p++) {
+                const pomPom = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.2, 8, 8),
+                    new THREE.MeshLambertMaterial({ color: colors[Math.floor(Math.random() * colors.length)] })
+                );
+                pomPom.position.set(
+                    (Math.random() - 0.5) * 3,
+                    1.5 + Math.random() * 2,
+                    (Math.random() - 0.5) * 2
+                );
+                pinataGroup.add(pomPom);
+            }
+            
+            return pinataGroup;
+        }
+
+        function setupControls() {
+            // Enhanced keyboard controls
+            document.addEventListener('keydown', (e) => {
+                game.keys[e.code] = true;
+                
+                // SIMPLIFIED E KEY INTERACTION - ALWAYS WORKS
+                if (e.code === 'KeyE') {
+                    console.log("=== E KEY PRESSED ===");
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (game.battlePhase === 'none') {
+                        const currentTime = Date.now();
+                        if (currentTime - game.lastInteractionTime > 300) {
+                            game.lastInteractionTime = currentTime;
+                            forceInteraction();
+                        }
+                    }
+                    return false;
+                }
+                
+                if (e.code === 'KeyR') {
+                    cycleWeapon();
+                }
+                if (e.code === 'KeyF') {
+                    findNearestObjects();
+                }
+                if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                    game.isRunning = true;
+                }
+                if (e.code === 'Escape') {
+                    handleEscape();
+                }
+                
+                // Arrow keys for camera rotation (backup control)
+                if (e.code === 'ArrowLeft') {
+                    game.mouse.x += 0.05;
+                }
+                if (e.code === 'ArrowRight') {
+                    game.mouse.x -= 0.05;
+                }
+                if (e.code === 'ArrowUp') {
+                    game.mouse.y += 0.05;
+                    game.mouse.y = Math.min(Math.PI/2 - 0.1, game.mouse.y);
+                }
+                if (e.code === 'ArrowDown') {
+                    game.mouse.y -= 0.05;
+                    game.mouse.y = Math.max(-Math.PI/2 + 0.1, game.mouse.y);
+                }
+                
+                // SPACE BAR AS BACKUP INTERACTION
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (game.battlePhase === 'none') {
+                        forceInteraction();
+                    }
+                    return false;
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                game.keys[e.code] = false;
+                if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                    game.isRunning = false;
+                }
+            });
+            
+            setupMouseControls();
+            setupClickInteraction();
+            setupTouchControls();
+        }
+
+        // NEW: Click to interact system
+        function setupClickInteraction() {
+            game.renderer.domElement.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                if (game.battlePhase === 'none') {
+                    console.log("=== DOUBLE CLICK INTERACTION ===");
+                    forceInteraction();
+                }
+            });
+            
+            // Single click after pointer lock fails
+            let clickCount = 0;
+            game.renderer.domElement.addEventListener('click', (e) => {
+                clickCount++;
+                setTimeout(() => {
+                    if (clickCount === 1 && !game.isPointerLocked && game.battlePhase === 'none') {
+                        console.log("=== SINGLE CLICK INTERACTION ===");
+                        forceInteraction();
+                    }
+                    clickCount = 0;
+                }, 250);
+            });
+        }
+
+        // SIMPLIFIED FORCE INTERACTION - MUCH MORE RELIABLE
+        function forceInteraction() {
+            console.log("=== FORCE INTERACTION TRIGGERED ===");
+            
+            const playerPos = game.camera.position;
+            const maxRange = 20; // Very generous range
+            
+            let foundInteraction = false;
+            
+            // Check ALL chests first
+            for (let i = 0; i < game.chests.length; i++) {
+                const chest = game.chests[i];
+                if (chest.opened) continue;
+                
+                const distance = playerPos.distanceTo(chest.group.position);
+                console.log(`Checking chest ${i}: distance=${distance.toFixed(2)}`);
+                
+                if (distance < maxRange) {
+                    console.log(`*** OPENING CHEST ${i} ***`);
+                    openTreasureChest(chest);
+                    showNotification(`📦 Opened chest at ${distance.toFixed(1)}m distance!`);
+                    foundInteraction = true;
+                    return; // Exit after first interaction
+                }
+            }
+            
+            // Check ALL pinatas
+            for (let i = 0; i < game.pinatas.length; i++) {
+                const pinata = game.pinatas[i];
+                if (pinata.destroyed) continue;
+                
+                const distance = playerPos.distanceTo(pinata.group.position);
+                console.log(`Checking pinata ${i}: distance=${distance.toFixed(2)}`);
+                
+                if (distance < maxRange) {
+                    console.log(`*** ATTACKING PINATA ${i} ***`);
+                    attackPinata(pinata);
+                    showNotification(`🎉 Attacked pinata at ${distance.toFixed(1)}m distance!`);
+                    foundInteraction = true;
+                    return;
+                }
+            }
+            
+            // Check ALL Jackie masters
+            for (let i = 0; i < game.jackieModels.length; i++) {
+                const jackie = game.jackieModels[i];
+                if (jackie.collected) continue;
+                
+                const distance = playerPos.distanceTo(jackie.group.position);
+                console.log(`Checking jackie ${i}: distance=${distance.toFixed(2)}`);
+                
+                if (distance < maxRange) {
+                    console.log(`*** ENCOUNTERING JACKIE ${i} ***`);
+                    startEncounter(jackie);
+                    showNotification(`🥋 Encountered ${jackie.type} at ${distance.toFixed(1)}m distance!`);
+                    foundInteraction = true;
+                    return;
+                }
+            }
+            
+            if (!foundInteraction) {
+                console.log("No objects found within range");
+                showNotification('🔍 No objects within 20m! Walk closer to chests, pinatas, or Jackie masters!');
+                
+                // Show player position for debugging
+                console.log(`Player at: (${playerPos.x.toFixed(1)}, ${playerPos.y.toFixed(1)}, ${playerPos.z.toFixed(1)})`);
+            }
+            
+            console.log("=== FORCE INTERACTION COMPLETE ===");
+        }
+
+        function setupMouseControls() {
+            let mouseDown = false;
+            let lastMouseX = 0;
+            let lastMouseY = 0;
+            
+            // Try pointer lock first, but have fallbacks
+            game.renderer.domElement.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!game.isPointerLocked && game.battlePhase === 'none') {
+                    requestPointerLock();
+                }
+            });
+            
+            // Mouse down/up for drag controls
+            game.renderer.domElement.addEventListener('mousedown', (e) => {
+                if (e.button === 0) { // Left click
+                    mouseDown = true;
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                    game.renderer.domElement.style.cursor = 'grabbing';
+                    
+                    if (!game.isPointerLocked) {
+                        showNotification('🖱️ Drag to look around! Use arrow keys as backup.');
+                    }
+                }
+            });
+            
+            document.addEventListener('mouseup', (e) => {
+                if (e.button === 0) {
+                    mouseDown = false;
+                    game.renderer.domElement.style.cursor = 'grab';
+                }
+            });
+            
+            // Mouse movement - works with or without pointer lock
+            document.addEventListener('mousemove', (e) => {
+                if (game.battlePhase !== 'none') return;
+                
+                if (game.isPointerLocked) {
+                    // Pointer lock movement
+                    const movementX = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+                    const movementY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+                    
+                    game.mouse.x -= movementX * 0.002;
+                    game.mouse.y -= movementY * 0.002;
+                } else if (mouseDown) {
+                    // Drag movement (fallback)
+                    const deltaX = e.clientX - lastMouseX;
+                    const deltaY = e.clientY - lastMouseY;
+                    
+                    game.mouse.x -= deltaX * 0.005;
+                    game.mouse.y -= deltaY * 0.005;
+                    
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                }
+                
+                // Clamp vertical rotation
+                game.mouse.y = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, game.mouse.y));
+            });
+            
+            // Set initial cursor
+            game.renderer.domElement.style.cursor = 'grab';
+            
+            setupPointerLockEvents();
+        }
+
+        function requestPointerLock() {
+            const element = game.renderer.domElement;
+            
+            // Try to request pointer lock with all prefixes
+            const requestPointerLock = element.requestPointerLock || 
+                                     element.mozRequestPointerLock || 
+                                     element.webkitRequestPointerLock;
+            
+            if (requestPointerLock) {
+                try {
+                    requestPointerLock.call(element);
+                } catch (error) {
+                    console.log('Pointer lock failed, using drag controls instead');
+                    showNotification('🖱️ Pointer lock not available. Drag to look around!');
+                }
+            } else {
+                console.log('Pointer lock not supported, using drag controls');
+                showNotification('🖱️ Drag mouse to look around!');
+            }
+        }
+
+        function setupPointerLockEvents() {
+            const onPointerLockChange = () => {
+                game.isPointerLocked = (document.pointerLockElement === game.renderer.domElement || 
+                                     document.mozPointerLockElement === game.renderer.domElement ||
+                                     document.webkitPointerLockElement === game.renderer.domElement);
+                
+                document.getElementById('crosshair').style.display = game.isPointerLocked ? 'block' : 'none';
+                
+                if (game.isPointerLocked) {
+                    showNotification('🎯 Pointer locked! Move mouse to look around.');
+                    game.renderer.domElement.style.cursor = 'none';
+                } else {
+                    game.renderer.domElement.style.cursor = 'grab';
+                }
+            };
+            
+            const onPointerLockError = () => {
+                console.log('Pointer lock error, using fallback controls');
+                showNotification('🖱️ Using drag controls. Hold and drag to look around!');
+            };
+            
+            // Add all the event listeners with prefixes
+            document.addEventListener('pointerlockchange', onPointerLockChange);
+            document.addEventListener('mozpointerlockchange', onPointerLockChange);
+            document.addEventListener('webkitpointerlockchange', onPointerLockChange);
+            
+            document.addEventListener('pointerlockerror', onPointerLockError);
+            document.addEventListener('mozpointerlockerror', onPointerLockError);
+            document.addEventListener('webkitpointerlockerror', onPointerLockError);
+        }
+
+        function setupTouchControls() {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isTouching = false;
+            
+            game.renderer.domElement.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    isTouching = true;
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
+            });
+            
+            game.renderer.domElement.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (isTouching && e.touches.length === 1) {
+                    const deltaX = e.touches[0].clientX - touchStartX;
+                    const deltaY = e.touches[0].clientY - touchStartY;
+                    
+                    game.mouse.x -= deltaX * 0.01;
+                    game.mouse.y -= deltaY * 0.01;
+                    
+                    game.mouse.y = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, game.mouse.y));
+                    
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
+            });
+            
+            game.renderer.domElement.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isTouching = false;
+            });
+        }
+
+        function handleEscape() {
+            if (game.battlePhase !== 'none') {
+                endBattle();
+            } else if (game.isPointerLocked) {
+                // Exit pointer lock
+                const exitPointerLock = document.exitPointerLock || 
+                                      document.mozExitPointerLock || 
+                                      document.webkitExitPointerLock;
+                if (exitPointerLock) {
+                    exitPointerLock.call(document);
+                }
+                showNotification('🖱️ Pointer lock disabled. Drag mouse to look around!');
+            }
+        }
+
+        function updatePlayer() {
+            if (game.battlePhase !== 'none') return;
+            
+            const baseSpeed = 0.6;
+            const runMultiplier = game.isRunning ? 1.8 : 1.0;
+            const speed = baseSpeed * runMultiplier;
+            
+            const direction = new THREE.Vector3();
+            
+            if (game.keys['KeyW']) direction.z -= 1;
+            if (game.keys['KeyS']) direction.z += 1;
+            if (game.keys['KeyA']) direction.x -= 1;
+            if (game.keys['KeyD']) direction.x += 1;
+            
+            if (direction.length() > 0) {
+                direction.normalize();
+                
+                const forward = new THREE.Vector3();
+                game.camera.getWorldDirection(forward);
+                forward.y = 0;
+                forward.normalize();
+                
+                const right = new THREE.Vector3();
+                right.crossVectors(forward, new THREE.Vector3(0, 1, 0));
+                right.normalize();
+                
+                const moveDirection = new THREE.Vector3();
+                moveDirection.addScaledVector(forward, -direction.z);
+                moveDirection.addScaledVector(right, direction.x);
+                
+                moveDirection.multiplyScalar(speed);
+                game.camera.position.add(moveDirection);
+                
+                // Boundary checking
+                const boundary = 180;
+                game.camera.position.x = Math.max(-boundary, Math.min(boundary, game.camera.position.x));
+                game.camera.position.z = Math.max(-boundary, Math.min(boundary, game.camera.position.z));
+            }
+            
+            // Enhanced camera rotation
+            game.camera.rotation.order = 'YXZ';
+            game.camera.rotation.y = game.mouse.x;
+            game.camera.rotation.x = game.mouse.y;
+            
+            // Update movement status
+            const statusElement = document.getElementById('status');
+            if (direction.length() > 0) {
+                statusElement.textContent = game.isRunning ? '🏃 Running through Ancient China' : '🚶 Walking through Ancient China';
+            } else {
+                statusElement.textContent = '🌸 Exploring Ancient China';
+            }
+            
+            checkNearbyObjects();
+        }
+
+        function checkNearbyObjects() {
+            let nearbyObject = null;
+            let closestDistance = Infinity;
+            let objectType = null;
+            const interactionRange = 15; // Increased range
+            
+            const playerPos = game.camera.position;
+            
+            // Check chests FIRST (priority for easier interaction)
+            game.chests.forEach((chest, index) => {
+                if (chest.opened) return;
+                const distance = playerPos.distanceTo(chest.group.position);
+                
+                // Debug logging for chests
+                if (distance < 20) {
+                    console.log(`Chest ${index}: distance=${distance.toFixed(2)}, opened=${chest.opened}`);
+                }
+                
+                if (distance < interactionRange && distance < closestDistance) {
+                    nearbyObject = chest;
+                    objectType = 'chest';
+                    closestDistance = distance;
+                    console.log(`Found nearby chest at distance ${distance.toFixed(2)}`);
+                }
+            });
+            
+            // Check Jackie masters (lower priority)
+            if (!nearbyObject) {
+                game.jackieModels.forEach(jackie => {
+                    if (jackie.collected) return;
+                    const distance = playerPos.distanceTo(jackie.group.position);
+                    if (distance < interactionRange && distance < closestDistance) {
+                        nearbyObject = jackie;
+                        objectType = 'jackie';
+                        closestDistance = distance;
+                    }
+                });
+            }
+            
+            // Check pinatas (lowest priority)
+            if (!nearbyObject) {
+                game.pinatas.forEach(pinata => {
+                    if (pinata.destroyed) return;
+                    const distance = playerPos.distanceTo(pinata.group.position);
+                    if (distance < interactionRange && distance < closestDistance) {
+                        nearbyObject = pinata;
+                        objectType = 'pinata';
+                        closestDistance = distance;
+                    }
+                });
+            }
+            
+            updateInteractionHint(nearbyObject, objectType, closestDistance);
+        }
+
+        function updateInteractionHint(nearbyObject, objectType, distance) {
+            const hint = document.getElementById('interaction-hint');
+            
+            if (nearbyObject && game.battlePhase === 'none') {
+                const messages = {
+                    'jackie': `🥋 Press E, SPACE, or Double-Click to challenge ${nearbyObject.type}! (${distance.toFixed(1)}m)`,
+                    'chest': `📦 Press E, SPACE, or Double-Click to open treasure chest! (${distance.toFixed(1)}m)`,
+                    'pinata': `🎉 Press E, SPACE, or Double-Click to attack pinata! (${distance.toFixed(1)}m)`
+                };
+                
+                const colors = {
+                    'jackie': '#ffff00',
+                    'chest': '#00ffff',
+                    'pinata': '#ff69b4'
+                };
+                
+                hint.textContent = messages[objectType];
+                hint.style.color = colors[objectType];
+                hint.style.display = 'block';
+            } else {
+                hint.style.display = 'none';
+            }
+        }
+
+        // LEGACY FUNCTION - NOW CALLS THE RELIABLE forceInteraction
+        function checkInteraction() {
+            console.log("checkInteraction called - redirecting to forceInteraction");
+            forceInteraction();
+        }
+
+        function openTreasureChest(chest) {
+            console.log("=== OPENING TREASURE CHEST ===");
+            console.log("Chest object:", chest);
+            console.log("Chest opened status:", chest.opened);
+            
+            if (chest.opened) {
+                console.log("Chest already opened, aborting");
+                showNotification('📦 This chest is already opened!');
+                return;
+            }
+            
+            console.log("Opening chest...");
+            chest.opened = true;
+            
+            // Enhanced chest opening animation
+            if (chest.lid) {
+                chest.lid.rotation.x = -Math.PI / 2.5;
+                chest.lid.position.y += 1;
+                chest.lid.position.z -= 1;
+                console.log("Lid animation applied");
+            }
+            
+            // Remove glow effect
+            if (chest.glow) {
+                console.log("Removing glow effect");
+                game.scene.remove(chest.glow);
+            } else {
+                console.log("No glow to remove");
+                // Find and remove glow manually
+                const glowObject = chest.group.children.find(child => 
+                    child.material && child.material.transparent && child.material.opacity < 0.5
+                );
+                if (glowObject) {
+                    console.log("Found and removing glow object manually");
+                    chest.group.remove(glowObject);
+                }
+            }
+            
+            // Create spectacular loot explosion
+            console.log("Creating loot explosion");
+            createEnhancedLootExplosion(chest.group.position);
+            
+            // Generate enhanced loot
+            console.log("Generating loot");
+            generateChestLoot(chest.group.position);
+            
+            const chestsOpened = parseInt(document.getElementById('chests-opened').textContent) + 1;
+            document.getElementById('chests-opened').textContent = chestsOpened;
+            
+            showNotification('📦 Treasure chest opened! Loot acquired!');
+            console.log(`Chest opened successfully! Total chests opened: ${chestsOpened}`);
+            console.log("=== CHEST OPENING COMPLETE ===");
+        }
+
+        function generateChestLoot(position) {
+            const weapons = [
+                { name: 'Dragon Sword', damage: 35, speed: 'Fast', rarity: 'Legendary', description: 'A legendary blade forged in the fires of ancient dragons, imbued with mystical power that burns enemies.' },
+                { name: 'Phoenix Staff', damage: 28, speed: 'Medium', rarity: 'Epic', description: 'A mystical staff that channels the rebirth power of the phoenix, healing the wielder with each strike.' },
+                { name: 'Tiger Claws', damage: 32, speed: 'Very Fast', rarity: 'Rare', description: 'Razor-sharp claws that mimic the ferocity of the ancient tigers, allowing for lightning-fast combo attacks.' },
+                { name: 'Lightning Nunchucks', damage: 40, speed: 'Fast', rarity: 'Legendary', description: 'Electrified nunchucks that crackle with the power of storms, stunning enemies with each hit.' },
+                { name: 'Wind Blade', damage: 38, speed: 'Medium', rarity: 'Epic', description: 'A ethereal blade that cuts through air itself, creating wind slashes that hit from a distance.' },
+                { name: 'Earth Hammer', damage: 45, speed: 'Slow', rarity: 'Legendary', description: 'A massive hammer imbued with the strength of mountains, capable of crushing any defense.' },
+                { name: 'Fire Whip', damage: 25, speed: 'Very Fast', rarity: 'Rare', description: 'A flame-wreathed whip that extends the user\'s reach while burning enemies with holy fire.' },
+                { name: 'Shadow Katana', damage: 42, speed: 'Fast', rarity: 'Legendary', description: 'A blade forged in shadow itself, allowing the wielder to strike from the darkness unseen.' },
+                { name: 'Jade Spear', damage: 30, speed: 'Medium', rarity: 'Epic', description: 'An ornate spear carved from sacred jade, blessed by ancient monks for piercing through evil.' },
+                { name: 'Crystal Bow', damage: 35, speed: 'Medium', rarity: 'Epic', description: 'A bow made of pure crystal that fires arrows of light, never missing their intended target.' },
+                { name: 'Thunder Gauntlets', damage: 50, speed: 'Slow', rarity: 'Mythic', description: 'Gauntlets that harness the power of thunder itself, each punch unleashing devastating shockwaves.' },
+                { name: 'Spirit Daggers', damage: 28, speed: 'Very Fast', rarity: 'Rare', description: 'Twin daggers that phase between the physical and spiritual realms, confusing enemies.' }
+            ];
+            
+            const lootChance = Math.random();
+            
+            if (lootChance > 0.6) {
+                // Weapon drop - TRIGGER CUTSCENE!
+                const weaponData = weapons[Math.floor(Math.random() * weapons.length)];
+                
+                if (!game.playerWeapons.includes(weaponData.name)) {
+                    game.playerWeapons.push(weaponData.name);
+                    game.currentWeapon = weaponData.name;
+                    document.getElementById('current-weapon').textContent = game.currentWeapon;
+                    
+                    createFlyingLoot(position, weaponData.name, 0xffd700);
+                    
+                    // TRIGGER WEAPON CUTSCENE!
+                    setTimeout(() => {
+                        showWeaponCutscene(weaponData);
+                    }, 1000); // Show cutscene after loot explosion
+                    
+                } else {
+                    createFlyingLoot(position, 'Weapon Upgrade', 0xffd700);
+                    showLootNotification(`🔧 ${weaponData.name} upgraded!`);
+                }
+            } else if (lootChance > 0.2) {
+                // Health potion
+                const healAmount = 20 + Math.floor(Math.random() * 20);
+                game.playerHealth = Math.min(100, game.playerHealth + healAmount);
+                document.getElementById('health').textContent = game.playerHealth;
+                
+                createFlyingLoot(position, 'Health Potion', 0xff0000);
+                showLootNotification(`❤️ Health restored! +${healAmount} HP`);
+            } else {
+                // Coins/XP
+                createFlyingLoot(position, 'Ancient Coins', 0xffff00);
+                showLootNotification('💰 Found ancient coins!');
+            }
+        }
+
+        function showWeaponCutscene(weaponData) {
+            console.log("=== SHOWING WEAPON CUTSCENE ===", weaponData);
+            
+            // Prevent player movement during cutscene
+            game.battlePhase = 'cutscene';
+            
+            // Set weapon info
+            document.getElementById('weapon-name').textContent = weaponData.name;
+            document.getElementById('weapon-description').textContent = weaponData.description;
+            document.getElementById('weapon-damage').textContent = weaponData.damage;
+            document.getElementById('weapon-speed').textContent = weaponData.speed;
+            document.getElementById('weapon-rarity').textContent = weaponData.rarity;
+            
+            // Set rarity color
+            const rarityColors = {
+                'Common': '#ffffff',
+                'Rare': '#0066ff',
+                'Epic': '#9933ff',
+                'Legendary': '#ff6600',
+                'Mythic': '#ff0066'
+            };
+            document.getElementById('weapon-rarity').style.color = rarityColors[weaponData.rarity] || '#ffffff';
+            
+            // Show the cutscene
+            document.getElementById('weapon-cutscene').style.display = 'block';
+            
+            // Create 3D weapon in the display area
+            createWeaponDisplay(weaponData);
+            
+            // Create background particles
+            createCutsceneParticles();
+            
+            // Exit pointer lock if active
+            if (game.isPointerLocked) {
+                const exitPointerLock = document.exitPointerLock || 
+                                      document.mozExitPointerLock || 
+                                      document.webkitExitPointerLock;
+                if (exitPointerLock) {
+                    exitPointerLock.call(document);
+                }
+            }
+            
+            showNotification(`⚔️ ${weaponData.name} acquired! Check the cutscene!`);
+        }
+
+        function createWeaponDisplay(weaponData) {
+            // Create a mini 3D scene for the weapon display
+            const container = document.getElementById('weapon-display-container');
+            
+            // Clear previous weapon display
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            
+            const displayScene = new THREE.Scene();
+            const displayCamera = new THREE.PerspectiveCamera(50, 400/300, 0.1, 100);
+            const displayRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            displayRenderer.setSize(400, 300);
+            displayRenderer.setClearColor(0x000000, 0);
+            container.appendChild(displayRenderer.domElement);
+            
+            // Lighting for weapon display
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            displayScene.add(ambientLight);
+            
+            const spotLight = new THREE.SpotLight(0xffd700, 1.5);
+            spotLight.position.set(5, 5, 5);
+            displayScene.add(spotLight);
+            
+            const rimLight = new THREE.DirectionalLight(0x00ffff, 0.8);
+            rimLight.position.set(-5, 2, 3);
+            displayScene.add(rimLight);
+            
+            // Create 3D weapon model based on type
+            const weaponGroup = new THREE.Group();
+            
+            if (weaponData.name.includes('Sword') || weaponData.name.includes('Blade') || weaponData.name.includes('Katana')) {
+                // Sword shape
+                const blade = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.1, 3, 0.3),
+                    new THREE.MeshPhongMaterial({ color: 0xc0c0c0, shininess: 100 })
+                );
+                blade.position.y = 1.5;
+                weaponGroup.add(blade);
+                
+                const hilt = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.15, 0.15, 0.8, 8),
+                    new THREE.MeshPhongMaterial({ color: 0x8b4513 })
+                );
+                hilt.position.y = -0.4;
+                weaponGroup.add(hilt);
+                
+                const guard = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.8, 0.1, 0.1),
+                    new THREE.MeshPhongMaterial({ color: 0xffd700 })
+                );
+                weaponGroup.add(guard);
+                
+            } else if (weaponData.name.includes('Staff') || weaponData.name.includes('Spear')) {
+                // Staff/Spear shape
+                const shaft = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.08, 0.08, 4, 8),
+                    new THREE.MeshPhongMaterial({ color: 0x8b4513 })
+                );
+                weaponGroup.add(shaft);
+                
+                const tip = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.2, 0.8, 8),
+                    new THREE.MeshPhongMaterial({ color: 0xffd700 })
+                );
+                tip.position.y = 2.4;
+                weaponGroup.add(tip);
+                
+            } else if (weaponData.name.includes('Hammer')) {
+                // Hammer shape
+                const handle = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.1, 0.1, 2.5, 8),
+                    new THREE.MeshPhongMaterial({ color: 0x8b4513 })
+                );
+                weaponGroup.add(handle);
+                
+                const head = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.2, 0.8, 0.8),
+                    new THREE.MeshPhongMaterial({ color: 0x696969 })
+                );
+                head.position.y = 1.5;
+                weaponGroup.add(head);
+                
+            } else if (weaponData.name.includes('Bow')) {
+                // Bow shape
+                const arc = new THREE.Mesh(
+                    new THREE.TorusGeometry(1.5, 0.05, 8, 16, Math.PI),
+                    new THREE.MeshPhongMaterial({ color: 0x32cd32 })
+                );
+                arc.rotation.z = Math.PI/2;
+                weaponGroup.add(arc);
+                
+                const string = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.01, 0.01, 2.8, 4),
+                    new THREE.MeshPhongMaterial({ color: 0xfffff0 })
+                );
+                string.position.x = 1.4;
+                string.rotation.z = Math.PI/2;
+                weaponGroup.add(string);
+                
+            } else if (weaponData.name.includes('Claws') || weaponData.name.includes('Daggers')) {
+                // Claws/Daggers - multiple small blades
+                for (let i = 0; i < 3; i++) {
+                    const claw = new THREE.Mesh(
+                        new THREE.ConeGeometry(0.05, 1.5, 6),
+                        new THREE.MeshPhongMaterial({ color: 0xc0c0c0, shininess: 100 })
+                    );
+                    claw.position.x = (i - 1) * 0.3;
+                    claw.position.y = 0.75;
+                    claw.rotation.x = -Math.PI/6;
+                    weaponGroup.add(claw);
+                }
+                
+            } else if (weaponData.name.includes('Gauntlets')) {
+                // Gauntlets - fist shape
+                const gauntlet = new THREE.Mesh(
+                    new THREE.BoxGeometry(1, 1.5, 0.8),
+                    new THREE.MeshPhongMaterial({ color: 0x4169e1 })
+                );
+                weaponGroup.add(gauntlet);
+                
+                // Spikes
+                for (let i = 0; i < 4; i++) {
+                    const spike = new THREE.Mesh(
+                        new THREE.ConeGeometry(0.1, 0.5, 6),
+                        new THREE.MeshPhongMaterial({ color: 0xffd700 })
+                    );
+                    spike.position.set((i-1.5) * 0.3, 0.8, 0.3);
+                    weaponGroup.add(spike);
+                }
+                
+            } else {
+                // Default weapon shape
+                const weapon = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.3, 2, 0.3),
+                    new THREE.MeshPhongMaterial({ color: 0xffd700, shininess: 80 })
+                );
+                weaponGroup.add(weapon);
+            }
+            
+            // Add magical aura around weapon
+            const aura = new THREE.Mesh(
+                new THREE.SphereGeometry(2, 16, 16),
+                new THREE.MeshBasicMaterial({ 
+                    color: rarityColors[weaponData.rarity] || 0xffd700,
+                    transparent: true,
+                    opacity: 0.1
+                })
+            );
+            weaponGroup.add(aura);
+            
+            displayScene.add(weaponGroup);
+            
+            // Position camera
+            displayCamera.position.set(0, 0, 5);
+            displayCamera.lookAt(0, 0, 0);
+            
+            // Animate the weapon
+            const startTime = Date.now();
+            function animateWeapon() {
+                const elapsed = Date.now() - startTime;
+                
+                weaponGroup.rotation.y = elapsed * 0.001;
+                weaponGroup.position.y = Math.sin(elapsed * 0.002) * 0.2;
+                
+                if (aura) {
+                    aura.rotation.x = elapsed * 0.0008;
+                    aura.rotation.z = elapsed * 0.0012;
+                    aura.material.opacity = 0.1 + Math.sin(elapsed * 0.003) * 0.05;
+                }
+                
+                displayRenderer.render(displayScene, displayCamera);
+                
+                if (document.getElementById('weapon-cutscene').style.display !== 'none') {
+                    requestAnimationFrame(animateWeapon);
+                }
+            }
+            
+            animateWeapon();
+        }
+
+        function createCutsceneParticles() {
+            const container = document.getElementById('cutscene-particles');
+            
+            // Clear existing particles
+            container.innerHTML = '';
+            
+            // Create floating particles
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'weapon-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                particle.style.animationDuration = (2 + Math.random() * 3) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        function closeWeaponCutscene() {
+            console.log("=== CLOSING WEAPON CUTSCENE ===");
+            
+            document.getElementById('weapon-cutscene').style.display = 'none';
+            game.battlePhase = 'none';
+            
+            // Clear the weapon display
+            const container = document.getElementById('weapon-display-container');
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            
+            showNotification('⚔️ Weapon equipped! Ready for battle!');
+        }
+
+        const rarityColors = {
+            'Common': '#ffffff',
+            'Rare': '#0066ff',
+            'Epic': '#9933ff',
+            'Legendary': '#ff6600',
+            'Mythic': '#ff0066'
+        };
+
+        function createEnhancedLootExplosion(position) {
+            // Create a spectacular burst of particles
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const sparkle = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.15, 8, 8),
+                        new THREE.MeshBasicMaterial({ 
+                            color: Math.random() > 0.5 ? 0xffd700 : 0x00ffff,
+                            transparent: true,
+                            opacity: 0.9
+                        })
+                    );
+                    
+                    sparkle.position.copy(position);
+                    sparkle.position.y += 2;
+                    
+                    const direction = new THREE.Vector3(
+                        (Math.random() - 0.5) * 12,
+                        Math.random() * 10 + 3,
+                        (Math.random() - 0.5) * 12
+                    );
+                    
+                    game.scene.add(sparkle);
+                    
+                    // Enhanced particle animation
+                    const startTime = Date.now();
+                    function animateSparkle() {
+                        const elapsed = Date.now() - startTime;
+                        const progress = elapsed / 2500;
+                        
+                        if (progress < 1) {
+                            sparkle.position.add(direction.clone().multiplyScalar(0.02));
+                            sparkle.position.y -= 0.015; // Gravity
+                            sparkle.material.opacity = 0.9 * (1 - progress);
+                            sparkle.rotation.x += 0.15;
+                            sparkle.rotation.y += 0.1;
+                            sparkle.scale.setScalar(1 + Math.sin(progress * Math.PI) * 0.5);
+                            
+                            requestAnimationFrame(animateSparkle);
+                        } else {
+                            game.scene.remove(sparkle);
+                        }
+                    }
+                    
+                    animateSparkle();
+                }, i * 25);
+            }
+        }
+
+        function createFlyingLoot(position, lootType, color) {
+            // Create enhanced flying loot with better visuals
+            let lootGeometry;
+            
+            if (lootType.includes('Sword') || lootType.includes('Blade')) {
+                lootGeometry = new THREE.BoxGeometry(0.1, 2, 0.1);
+            } else if (lootType.includes('Staff') || lootType.includes('Spear')) {
+                lootGeometry = new THREE.CylinderGeometry(0.05, 0.05, 2, 8);
+            } else if (lootType === 'Health Potion') {
+                lootGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1, 8);
+            } else if (lootType.includes('Coins')) {
+                lootGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.1, 16);
+            } else {
+                lootGeometry = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+            }
+            
+            const lootMaterial = new THREE.MeshBasicMaterial({ 
+                color: color,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            const lootMesh = new THREE.Mesh(lootGeometry, lootMaterial);
+            lootMesh.position.copy(position);
+            lootMesh.position.y += 3;
+            
+            game.scene.add(lootMesh);
+            
+            // Enhanced flying animation
+            const startTime = Date.now();
+            const duration = 3500;
+            const startY = lootMesh.position.y;
+            const targetY = startY + 25;
+            
+            function animateFlyingLoot() {
+                const elapsed = Date.now() - startTime;
+                const progress = elapsed / duration;
+                
+                if (progress < 1) {
+                    lootMesh.position.y = startY + (targetY - startY) * progress;
+                    lootMesh.position.x += Math.sin(elapsed * 0.008) * 0.08;
+                    lootMesh.position.z += Math.cos(elapsed * 0.008) * 0.08;
+                    
+                    lootMesh.rotation.x += 0.08;
+                    lootMesh.rotation.y += 0.05;
+                    lootMesh.rotation.z += 0.03;
+                    
+                    lootMesh.material.opacity = 0.9 * (1 - progress * 0.6);
+                    
+                    const scale = 1 + Math.sin(progress * Math.PI) * 0.4;
+                    lootMesh.scale.setScalar(scale);
+                    
+                    requestAnimationFrame(animateFlyingLoot);
+                } else {
+                    game.scene.remove(lootMesh);
+                }
+            }
+            
+            animateFlyingLoot();
+            
+            // Create trailing sparkles
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    createTrailSparkle(lootMesh.position, color);
+                }, i * 150);
+            }
+        }
+
+        function createTrailSparkle(position, color) {
+            const sparkle = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08, 6, 6),
+                new THREE.MeshBasicMaterial({ 
+                    color: color,
+                    transparent: true,
+                    opacity: 0.7
+                })
+            );
+            
+            sparkle.position.copy(position);
+            sparkle.position.add(new THREE.Vector3(
+                (Math.random() - 0.5) * 3,
+                (Math.random() - 0.5) * 3,
+                (Math.random() - 0.5) * 3
+            ));
+            
+            game.scene.add(sparkle);
+            
+            const startTime = Date.now();
+            function animateTrail() {
+                const elapsed = Date.now() - startTime;
+                const progress = elapsed / 1000;
+                
+                if (progress < 1) {
+                    sparkle.material.opacity = 0.7 * (1 - progress);
+                    sparkle.scale.setScalar(1 - progress * 0.6);
+                    sparkle.rotation.x += 0.1;
+                    sparkle.rotation.y += 0.05;
+                    requestAnimationFrame(animateTrail);
+                } else {
+                    game.scene.remove(sparkle);
+                }
+            }
+            
+            animateTrail();
+        }
+
+        function attackPinata(pinata) {
+            if (pinata.destroyed) return;
+            
+            // Updated weapon damage values to match cutscene data
+            const weaponDamage = {
+                'Bare Hands': 15,
+                'Dragon Sword': 35,
+                'Phoenix Staff': 28,
+                'Tiger Claws': 32,
+                'Lightning Nunchucks': 40,
+                'Wind Blade': 38,
+                'Earth Hammer': 45,
+                'Fire Whip': 25,
+                'Shadow Katana': 42,
+                'Jade Spear': 30,
+                'Crystal Bow': 35,
+                'Thunder Gauntlets': 50, // Mythic weapon damage
+                'Spirit Daggers': 28
+            };
+            
+            const damage = weaponDamage[game.currentWeapon] || 15;
+            pinata.health -= damage;
+            
+            // Enhanced damage effect
+            pinata.group.rotation.x += 0.5;
+            pinata.group.position.y += 1;
+            
+            // Create impact effect
+            createImpactEffect(pinata.group.position, pinata.color);
+            
+            showLootNotification(`💥 ${damage} damage with ${game.currentWeapon}!`);
+            
+            setTimeout(() => {
+                pinata.group.rotation.x = 0;
+                pinata.group.position.y -= 1;
+            }, 300);
+            
+            if (pinata.health <= 0) {
+                destroyPinata(pinata);
+            }
+        }
+
+        function createImpactEffect(position, color) {
+            for (let i = 0; i < 8; i++) {
+                const impact = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.1, 6, 6),
+                    new THREE.MeshBasicMaterial({ 
+                        color: color,
+                        transparent: true,
+                        opacity: 0.8
+                    })
+                );
+                
+                impact.position.copy(position);
+                impact.position.y += 2;
+                
+                const direction = new THREE.Vector3(
+                    (Math.random() - 0.5) * 5,
+                    Math.random() * 3 + 1,
+                    (Math.random() - 0.5) * 5
+                );
+                
+                game.scene.add(impact);
+                
+                const startTime = Date.now();
+                function animateImpact() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = elapsed / 800;
+                    
+                    if (progress < 1) {
+                        impact.position.add(direction.clone().multiplyScalar(0.03));
+                        impact.position.y -= 0.02;
+                        impact.material.opacity = 0.8 * (1 - progress);
+                        impact.scale.setScalar(1 - progress * 0.5);
+                        requestAnimationFrame(animateImpact);
+                    } else {
+                        game.scene.remove(impact);
+                    }
+                }
+                
+                setTimeout(() => animateImpact(), i * 50);
+            }
+        }
+
+        function destroyPinata(pinata) {
+            pinata.destroyed = true;
+            
+            // Create massive explosion
+            createPinataExplosion(pinata.group.position);
+            
+            // Enhanced destruction animation
+            pinata.group.children.forEach((child, index) => {
+                setTimeout(() => {
+                    const explosionForce = new THREE.Vector3(
+                        (Math.random() - 0.5) * 20,
+                        Math.random() * 15 + 8,
+                        (Math.random() - 0.5) * 20
+                    );
+                    
+                    child.position.add(explosionForce);
+                    child.rotation.x += (Math.random() - 0.5) * Math.PI;
+                    child.rotation.y += (Math.random() - 0.5) * Math.PI;
+                    child.rotation.z += (Math.random() - 0.5) * Math.PI;
+                    
+                    const startTime = Date.now();
+                    function animateDebris() {
+                        const elapsed = Date.now() - startTime;
+                        if (elapsed < 3000) {
+                            child.position.add(explosionForce.clone().multiplyScalar(0.008));
+                            child.position.y -= 0.025;
+                            child.rotation.x += 0.08;
+                            child.rotation.y += 0.05;
+                            child.rotation.z += 0.03;
+                            child.scale.multiplyScalar(0.998);
+                            requestAnimationFrame(animateDebris);
+                        }
+                    }
+                    animateDebris();
+                    
+                }, index * 40);
+            });
+            
+            setTimeout(() => {
+                game.scene.remove(pinata.group);
+            }, 3000);
+            
+            // Enhanced loot explosion
+            createPinataLootExplosion(pinata.group.position);
+            
+            const pinatasDestroyed = parseInt(document.getElementById('pinatas-destroyed').textContent) + 1;
+            document.getElementById('pinatas-destroyed').textContent = pinatasDestroyed;
+            
+            showNotification('🎉 Pinata destroyed! Loot explosion!');
+        }
+
+        function createPinataExplosion(position) {
+            // Enhanced explosion with more particles
+            for (let i = 0; i < 35; i++) {
+                const colors = [0xff69b4, 0x00ff00, 0xff4500, 0x9400d3, 0xffff00, 0x00bfff, 0xff1493, 0x32cd32];
+                const particle = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.2, 8, 8),
+                    new THREE.MeshBasicMaterial({ 
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        transparent: true,
+                        opacity: 0.9
+                    })
+                );
+                
+                particle.position.copy(position);
+                particle.position.y += 3;
+                
+                const direction = new THREE.Vector3(
+                    (Math.random() - 0.5) * 18,
+                    Math.random() * 15 + 5,
+                    (Math.random() - 0.5) * 18
+                );
+                
+                game.scene.add(particle);
+                
+                const startTime = Date.now();
+                function animateParticle() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = elapsed / 4000;
+                    
+                    if (progress < 1) {
+                        particle.position.add(direction.clone().multiplyScalar(0.012));
+                        particle.position.y -= 0.02;
+                        particle.material.opacity = 0.9 * (1 - progress);
+                        particle.rotation.x += 0.2;
+                        particle.rotation.y += 0.15;
+                        particle.rotation.z += 0.18;
+                        
+                        if (particle.position.y < 0 && direction.y < 0) {
+                            direction.y *= -0.7;
+                            particle.position.y = 0;
+                        }
+                        
+                        requestAnimationFrame(animateParticle);
+                    } else {
+                        game.scene.remove(particle);
+                    }
+                }
+                
+                setTimeout(() => animateParticle(), i * 30);
+            }
+            
+            // Enhanced confetti
+            for (let i = 0; i < 20; i++) {
+                const colors = [0xff69b4, 0x00ff00, 0xff4500, 0x9400d3, 0xffff00];
+                const confetti = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.4, 2),
+                    new THREE.MeshBasicMaterial({ 
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        transparent: true,
+                        opacity: 0.9,
+                        side: THREE.DoubleSide
+                    })
+                );
+                
+                confetti.position.copy(position);
+                confetti.position.y += 4;
+                
+                const direction = new THREE.Vector3(
+                    (Math.random() - 0.5) * 15,
+                    Math.random() * 10 + 3,
+                    (Math.random() - 0.5) * 15
+                );
+                
+                game.scene.add(confetti);
+                
+                const startTime = Date.now();
+                function animateConfetti() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = elapsed / 5000;
+                    
+                    if (progress < 1) {
+                        confetti.position.add(direction.clone().multiplyScalar(0.008));
+                        confetti.position.y -= 0.006;
+                        confetti.material.opacity = 0.9 * (1 - progress);
+                        
+                        confetti.rotation.x += 0.08;
+                        confetti.rotation.z += Math.sin(elapsed * 0.008) * 0.03;
+                        
+                        requestAnimationFrame(animateConfetti);
+                    } else {
+                        game.scene.remove(confetti);
+                    }
+                }
+                
+                setTimeout(() => animateConfetti(), i * 50);
+            }
+        }
+
+        function createPinataLootExplosion(position) {
+            const lootCount = Math.floor(Math.random() * 4) + 4; // 4-7 items
+            
+            for (let i = 0; i < lootCount; i++) {
+                setTimeout(() => {
+                    const lootTypes = [
+                        { name: 'Health Potion', color: 0xff0000, effect: 'health' },
+                        { name: 'Speed Boost', color: 0x00ff00, effect: 'speed' },
+                        { name: 'Damage Boost', color: 0xff4500, effect: 'damage' },
+                        { name: 'Shield Boost', color: 0x0080ff, effect: 'shield' },
+                        { name: 'Ancient Coins', color: 0xffd700, effect: 'coins' },
+                        { name: 'Energy Crystal', color: 0x9400d3, effect: 'energy' }
+                    ];
+                    
+                    const loot = lootTypes[Math.floor(Math.random() * lootTypes.length)];
+                    
+                    const angle = (i / lootCount) * Math.PI * 2;
+                    const lootPosition = position.clone();
+                    lootPosition.x += Math.cos(angle) * 3;
+                    lootPosition.z += Math.sin(angle) * 3;
+                    
+                    createFlyingLoot(lootPosition, loot.name, loot.color);
+                    
+                    setTimeout(() => {
+                        applyLootEffect(loot);
+                    }, 1800);
+                    
+                }, i * 250);
+            }
+        }
+
+        function applyLootEffect(loot) {
+            switch(loot.effect) {
+                case 'health':
+                    const healAmount = 25;
+                    game.playerHealth = Math.min(100, game.playerHealth + healAmount);
+                    document.getElementById('health').textContent = game.playerHealth;
+                    showLootNotification(`❤️ Health restored! +${healAmount} HP`);
+                    break;
+                case 'speed':
+                    showLootNotification('💨 Speed boost activated!');
+                    break;
+                case 'damage':
+                    showLootNotification('⚔️ Damage boost activated!');
+                    break;
+                case 'shield':
+                    showLootNotification('🛡️ Shield boost activated!');
+                    break;
+                case 'coins':
+                    showLootNotification('💰 Ancient coins collected!');
+                    break;
+                case 'energy':
+                    showLootNotification('⚡ Energy crystal absorbed!');
+                    break;
+            }
+        }
+
+        function showLootNotification(message) {
+            const notification = document.getElementById('loot-notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('gameNotification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            notification.style.animation = 'fadeInOut 4s ease';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 4000);
+        }
+
+        function findNearestObjects() {
+            const playerPos = game.camera.position;
+            console.log("=== ENHANCED OBJECT FINDER ===");
+            console.log("Player position:", playerPos.x.toFixed(2), playerPos.y.toFixed(2), playerPos.z.toFixed(2));
+            
+            let nearestChest = null;
+            let nearestChestDistance = Infinity;
+            
+            console.log("CHESTS:");
+            game.chests.forEach((chest, index) => {
+                const distance = playerPos.distanceTo(chest.group.position);
+                console.log(`Chest ${index}: distance=${distance.toFixed(2)}, opened=${chest.opened}, position=(${chest.group.position.x.toFixed(1)}, ${chest.group.position.y.toFixed(1)}, ${chest.group.position.z.toFixed(1)})`);
+                
+                if (!chest.opened && distance < nearestChestDistance) {
+                    nearestChest = chest;
+                    nearestChestDistance = distance;
+                }
+            });
+            
+            if (nearestChest) {
+                showNotification(`📦 Nearest chest: ${nearestChestDistance.toFixed(1)}m away! Look for the cyan glow!`);
+                
+                // Create multiple temporary markers to make it super obvious
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const marker = new THREE.Mesh(
+                            new THREE.SphereGeometry(1.5, 8, 8),
+                            new THREE.MeshBasicMaterial({ 
+                                color: 0xff00ff, 
+                                transparent: true, 
+                                opacity: 0.7 
+                            })
+                        );
+                        marker.position.copy(nearestChest.group.position);
+                        marker.position.y += 6 + i * 2;
+                        game.scene.add(marker);
+                        
+                        // Make it pulse
+                        const startTime = Date.now();
+                        function animateMarker() {
+                            const elapsed = Date.now() - startTime;
+                            if (elapsed < 6000) {
+                                marker.scale.setScalar(1 + Math.sin(elapsed * 0.01) * 0.3);
+                                marker.rotation.y += 0.05;
+                                requestAnimationFrame(animateMarker);
+                            } else {
+                                game.scene.remove(marker);
+                            }
+                        }
+                        animateMarker();
+                    }, i * 500);
+                }
+            } else {
+                showNotification('📦 No unopened chests found! All treasures collected!');
+            }
+            
+            console.log("=== END ENHANCED DEBUG ===");
+        }
+
+        function cycleWeapon() {
+            if (game.playerWeapons.length <= 1) return;
+            
+            const currentIndex = game.playerWeapons.indexOf(game.currentWeapon);
+            const nextIndex = (currentIndex + 1) % game.playerWeapons.length;
+            game.currentWeapon = game.playerWeapons[nextIndex];
+            
+            document.getElementById('current-weapon').textContent = game.currentWeapon;
+            showLootNotification(`⚔️ Equipped: ${game.currentWeapon}`);
+        }
+
+        function startEncounter(jackie) {
+            game.currentBattle = jackie;
+            game.battlePhase = 'selection';
+            
+            const selectionScreen = document.getElementById('battle-selection');
+            const title = document.getElementById('encounter-title');
+            const description = document.getElementById('encounter-description');
+            
+            title.textContent = `${jackie.type} Appears!`;
+            description.textContent = `The legendary ${jackie.type} challenges you to martial arts combat! Choose your approach wisely.`;
+            
+            selectionScreen.style.display = 'block';
+            
+            // Exit pointer lock when entering battle
+            if (game.isPointerLocked) {
+                const exitPointerLock = document.exitPointerLock || 
+                                      document.mozExitPointerLock || 
+                                      document.webkitExitPointerLock;
+                if (exitPointerLock) {
+                    exitPointerLock.call(document);
+                }
+            }
+        }
+
+        function chooseAction(action) {
+            const selectionScreen = document.getElementById('battle-selection');
+            selectionScreen.style.display = 'none';
+            
+            switch(action) {
+                case 'fight':
+                    startBattle();
+                    break;
+                case 'collect':
+                    collectJackie();
+                    break;
+                case 'run':
+                    runAway();
+                    break;
+            }
+        }
+
+        function startBattle() {
+            game.battlePhase = 'fighting';
+            game.playerHealth = Math.max(game.playerHealth, 60); // Ensure some health
+            game.enemyHealth = 100;
+            
+            const cutsceneScreen = document.getElementById('battle-cutscene');
+            const enemyName = document.getElementById('enemy-name');
+            const battleLog = document.getElementById('battle-log');
+            
+            enemyName.textContent = game.currentBattle.type.toUpperCase();
+            battleLog.innerHTML = `<div style="color: #ffd700;">⚡ Epic kung fu battle begins with ${game.currentBattle.type}! The air crackles with ancient martial energy...</div>`;
+            
+            updateHealthBars();
+            cutsceneScreen.style.display = 'block';
+        }
+
+        function performAttack(attackType) {
+            if (game.battlePhase !== 'fighting') return;
+            
+            const battleLog = document.getElementById('battle-log');
+            
+            // Updated weapon damage values to match cutscene data
+            const weaponMultiplier = {
+                'Bare Hands': 1.0,
+                'Dragon Sword': 2.2,
+                'Phoenix Staff': 1.8,
+                'Tiger Claws': 1.9,
+                'Lightning Nunchucks': 2.5,
+                'Wind Blade': 2.1,
+                'Earth Hammer': 2.8,
+                'Fire Whip': 1.6,
+                'Shadow Katana': 2.6,
+                'Jade Spear': 1.9,
+                'Crystal Bow': 2.0,
+                'Thunder Gauntlets': 3.2, // Mythic weapon bonus
+                'Spirit Daggers': 1.7
+            };
+            
+            const attacks = {
+                punch: { damage: 18, description: `You strike with deadly precision using ${game.currentWeapon}!` },
+                kick: { damage: 25, description: `You launch a devastating Crane Kick enhanced by ${game.currentWeapon}!` },
+                fire_planche: { damage: 35, description: `You unleash the ancient Dragon Flame technique with ${game.currentWeapon}!` },
+                nunchuk: { damage: 30, description: `You spin ${game.currentWeapon} with lightning-fast fury!` },
+                dodge: { damage: 0, description: 'You flow like water, using the mystical Shadow Step technique!' }
+            };
+            
+            const attack = attacks[attackType];
+            const baseDamage = attack.damage;
+            const weaponBonus = Math.floor(baseDamage * (weaponMultiplier[game.currentWeapon] || 1.0));
+            const playerDamage = weaponBonus + Math.floor(Math.random() * 15);
+            
+            battleLog.innerHTML += `<div style="color: #4CAF50;">💥 ${attack.description}</div>`;
+            
+            if (attackType !== 'dodge') {
+                game.enemyHealth = Math.max(0, game.enemyHealth - playerDamage);
+                battleLog.innerHTML += `<div style="color: #ffff00;">⚡ ${game.currentBattle.type} takes ${playerDamage} damage! Ancient energy flows from the wound!</div>`;
+            }
+            
+            if (game.enemyHealth <= 0) {
+                battleLog.innerHTML += `<div style="color: #4CAF50; font-weight: bold;">🏆 VICTORY! You have mastered the ways of the ${game.currentBattle.type}! The ancient spirits smile upon you!</div>`;
+                setTimeout(() => {
+                    collectJackie();
+                }, 2500);
+                updateHealthBars();
+                return;
+            }
+            
+            setTimeout(() => {
+                const jackieAttacks = [
+                    'Master channels the power of ten thousand dragons!',
+                    'Master summons the fury of ancient winds!',
+                    'Master unleashes the secret technique of the hidden temple!',
+                    'Master strikes with the speed of falling lightning!',
+                    'Master flows like water, strikes like thunder!'
+                ];
+                
+                const jackieAttack = jackieAttacks[Math.floor(Math.random() * jackieAttacks.length)];
+                const jackie_damage = 15 + Math.floor(Math.random() * 20);
+                
+                battleLog.innerHTML += `<div style="color: #f44336;">🥊 ${jackieAttack}</div>`;
+                
+                if (attackType !== 'dodge') {
+                    game.playerHealth = Math.max(0, game.playerHealth - jackie_damage);
+                    battleLog.innerHTML += `<div style="color: #ff9800;">💔 You take ${jackie_damage} damage! The ancient power burns within you!</div>`;
+                } else {
+                    battleLog.innerHTML += `<div style="color: #2196f3;">🛡️ Your shadow step flows like mist - the attack passes harmlessly through you!</div>`;
+                }
+                
+                if (game.playerHealth <= 0) {
+                    battleLog.innerHTML += `<div style="color: #f44336; font-weight: bold;">💀 Defeat! The master's ancient wisdom proves too powerful! You must train harder to face such legendary skill!</div>`;
+                    setTimeout(() => {
+                        runAway();
+                    }, 2500);
+                }
+                
+                updateHealthBars();
+                battleLog.scrollTop = battleLog.scrollHeight;
+            }, 1800);
+            
+            updateHealthBars();
+            battleLog.scrollTop = battleLog.scrollHeight;
+        }
+
+        function updateHealthBars() {
+            document.getElementById('player-health').textContent = game.playerHealth;
+            document.getElementById('enemy-health').textContent = game.enemyHealth;
+            document.getElementById('health').textContent = game.playerHealth;
+            
+            document.getElementById('player-health-bar').style.width = game.playerHealth + '%';
+            document.getElementById('enemy-health-bar').style.width = game.enemyHealth + '%';
+            
+            // Color change based on health
+            const playerBar = document.getElementById('player-health-bar');
+            const enemyBar = document.getElementById('enemy-health-bar');
+            
+            if (game.playerHealth > 60) {
+                playerBar.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
+            } else if (game.playerHealth > 30) {
+                playerBar.style.background = 'linear-gradient(90deg, #FF9800, #FFC107)';
+            } else {
+                playerBar.style.background = 'linear-gradient(90deg, #f44336, #FF5722)';
+            }
+            
+            if (game.enemyHealth > 60) {
+                enemyBar.style.background = 'linear-gradient(90deg, #f44336, #ff5722)';
+            } else if (game.enemyHealth > 30) {
+                enemyBar.style.background = 'linear-gradient(90deg, #FF9800, #FFC107)';
+            } else {
+                enemyBar.style.background = 'linear-gradient(90deg, #9C27B0, #E91E63)';
+            }
+        }
+
+        function collectJackie() {
+            if (game.currentBattle) {
+                game.currentBattle.collected = true;
+                game.scene.remove(game.currentBattle.group);
+                game.collectedJackies.push(game.currentBattle);
+                
+                document.getElementById('collected').textContent = game.collectedJackies.length;
+                showNotification(`🥋 ${game.currentBattle.type} joined your dojo!`);
+                
+                // Reward player with health and possibly new weapon
+                game.playerHealth = Math.min(100, game.playerHealth + 30);
+                document.getElementById('health').textContent = game.playerHealth;
+            }
+            
+            endBattle();
+        }
+
+        function runAway() {
+            showNotification('🏃 You retreat to train for another day...');
+            // Small health penalty for running
+            game.playerHealth = Math.max(10, game.playerHealth - 5);
+            document.getElementById('health').textContent = game.playerHealth;
+            endBattle();
+        }
+
+        function endBattle() {
+            game.battlePhase = 'none';
+            game.currentBattle = null;
+            
+            document.getElementById('battle-selection').style.display = 'none';
+            document.getElementById('battle-cutscene').style.display = 'none';
+            document.getElementById('interaction-hint').style.display = 'none';
+            
+            game.playerHealth = Math.min(100, game.playerHealth + 5); // Small regen
+            game.enemyHealth = 100;
+            updateHealthBars();
+        }
+
+        function createFallingPetals(treePosition) {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const petal = new THREE.Mesh(
+                        new THREE.PlaneGeometry(0.2, 0.3),
+                        new THREE.MeshBasicMaterial({
+                            color: 0xffb6c1,
+                            transparent: true,
+                            opacity: 0.8,
+                            side: THREE.DoubleSide
+                        })
+                    );
+                    
+                    petal.position.copy(treePosition);
+                    petal.position.x += (Math.random() - 0.5) * 10;
+                    petal.position.y += Math.random() * 15 + 10;
+                    petal.position.z += (Math.random() - 0.5) * 10;
+                    
+                    game.scene.add(petal);
+                    
+                    const startTime = Date.now();
+                    function animatePetal() {
+                        const elapsed = Date.now() - startTime;
+                        const progress = elapsed / 8000;
+                        
+                        if (progress < 1 && petal.position.y > 0) {
+                            petal.position.y -= 0.02;
+                            petal.position.x += Math.sin(elapsed * 0.002) * 0.01;
+                            petal.position.z += Math.cos(elapsed * 0.002) * 0.01;
+                            petal.rotation.x += 0.02;
+                            petal.rotation.z += 0.01;
+                            petal.material.opacity = 0.8 * (1 - progress * 0.3);
+                            requestAnimationFrame(animatePetal);
+                        } else {
+                            game.scene.remove(petal);
+                        }
+                    }
+                    
+                    animatePetal();
+                }, i * 1000);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            updatePlayer();
+            
+            if (game.battlePhase === 'none') {
+                const time = Date.now() * 0.001;
+                
+                // Enhanced Jackie animations
+                game.jackieModels.forEach((jackie, index) => {
+                    if (!jackie || !jackie.group || jackie.collected) return;
+                    
+                    const group = jackie.group;
+                    const animOffset = jackie.animOffset;
+                    
+                    // Floating animation
+                    group.position.y = 8 + Math.sin(time * 2 + animOffset) * 2;
+                    
+                    // Rotation
+                    group.rotation.y += 0.008;
+                    
+                    // Subtle bobbing
+                    group.rotation.x = Math.sin(time * 3 + animOffset) * 0.1;
+                    group.rotation.z = Math.cos(time * 2.5 + animOffset) * 0.1;
+                    
+                    // Aura pulse
+                    const aura = group.children[group.children.length - 1];
+                    if (aura && aura.material.transparent) {
+                        aura.material.opacity = 0.1 + Math.sin(time * 4 + animOffset) * 0.05;
+                        aura.rotation.y += 0.02;
+                    }
+                });
+                
+                // Enhanced chest animations
+                game.chests.forEach((chest, index) => {
+                    if (!chest.opened && chest.glow) {
+                        chest.glow.rotation.y += 0.015;
+                        chest.glow.rotation.x += 0.005;
+                        chest.glow.material.opacity = 0.15 + Math.sin(time * 3 + index) * 0.08;
+                        chest.glow.scale.setScalar(1 + Math.sin(time * 2 + index) * 0.1);
+                    }
+                });
+                
+                // Enhanced pinata animations
+                game.pinatas.forEach((pinata, index) => {
+                    if (!pinata.destroyed) {
+                        const animOffset = pinata.animOffset;
+                        pinata.group.position.y = Math.sin(time * 1.5 + animOffset) * 2 + 2;
+                        pinata.group.rotation.y += 0.012;
+                        pinata.group.rotation.x = Math.sin(time * 2 + animOffset) * 0.15;
+                    }
+                });
+            }
+            
+            game.renderer.render(game.scene, game.camera);
+        }
+
+        // Enhanced window resize handler
+        window.addEventListener('resize', () => {
+            game.camera.aspect = window.innerWidth / window.innerHeight;
+            game.camera.updateProjectionMatrix();
+            game.renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize the enhanced game
+        init();
+    </script>
+</body>
+</html>
